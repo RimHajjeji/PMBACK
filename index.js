@@ -12,6 +12,7 @@ mongoose.connect("mongodb+srv://admin:admin12345678@cluster0.awqce.mongodb.net/P
 });
 
 app.use("/api/admin", require("./routes/admin"));
+app.use("/api/clients", require("./routes/client"));
 
 app.listen(5000, () => {
     console.log("Server is Running on port 5000!!!");
