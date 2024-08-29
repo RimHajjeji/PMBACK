@@ -59,4 +59,32 @@ router.post("/login", async (req, res) => {
     }
 });
 
+router.put("/update", async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const admin = await Admin.findOne({});
+
+        if (!admin) {
+            return res.status(404).json({ msg: "Admin not found" });
+        }
+
+        if (email) {
+            admin.email = email;
+        }
+
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            admin.password = await bcrypt.hash(password, salt);
+        }
+
+        await admin.save();
+        res.json({ msg: "Admin updated successfully" });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server error");
+    }
+});
+
+
 module.exports = router;
