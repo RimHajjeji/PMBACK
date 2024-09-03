@@ -43,5 +43,6 @@ router.get("/categories", async (req, res) => {
         res.status(500).json({ message: "Failed to retrieve categories", error: err });
     }
 });
+   
 
 module.exports = router;
