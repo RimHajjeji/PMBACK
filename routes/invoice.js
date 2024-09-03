@@ -18,12 +18,12 @@ router.post("/add", async (req, res) => {
         if (!client) return res.status(404).json({ error: "Client not found" });
 
         const invoiceNumber = await generateInvoiceNumber();
-        const newInvoice = new Invoice({ 
-            client: clientId, 
-            invoiceNumber, 
+        const newInvoice = new Invoice({
+            client: clientId,
+            invoiceNumber,
             issuedBy,
             billingPeriod,
-            vehicles 
+            vehicles,
         });
 
         await newInvoice.save();
