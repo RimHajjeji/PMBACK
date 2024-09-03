@@ -6,13 +6,12 @@ const Client = require("../models/Client");
 // Generate Invoice Number
 const generateInvoiceNumber = async () => {
     const count = await Invoice.countDocuments();
-    const nextNumber = (count + 1).toString().padStart(7, '0');
-    return nextNumber;
+    return (count + 1).toString().padStart(7, '0');
 };
 
 // Add a new invoice
 router.post("/add", async (req, res) => {
-    const { clientId, issuedBy } = req.body;
+    const { clientId, issuedBy, billingPeriod, vehicles } = req.body;
 
     try {
         const client = await Client.findById(clientId);
@@ -22,7 +21,9 @@ router.post("/add", async (req, res) => {
         const newInvoice = new Invoice({ 
             client: clientId, 
             invoiceNumber, 
-            issuedBy 
+            issuedBy,
+            billingPeriod,
+            vehicles 
         });
 
         await newInvoice.save();
