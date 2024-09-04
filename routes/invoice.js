@@ -11,7 +11,7 @@ const generateInvoiceNumber = async () => {
 
 // Ajouter une nouvelle facture
 router.post("/add", async (req, res) => {
-    const { clientId, issuedBy, billingPeriod, vehicles, totalHT, tva, css } = req.body;
+    const { clientId, issuedBy, billingPeriod, vehicles, totalHT, tva, css, totalTTC } = req.body;
 
     try {
         const client = await Client.findById(clientId);
@@ -25,8 +25,9 @@ router.post("/add", async (req, res) => {
             billingPeriod,
             vehicles,
             totalHT,
-            tva, // Inclure le champ TVA ici
-            css, // Inclure le champ CSS ici
+            tva,
+            css,
+            totalTTC, // Inclure le champ TOTAL TTC ici
         });
 
         await newInvoice.save();

@@ -19,8 +19,9 @@ const invoiceSchema = new mongoose.Schema({
     },
     vehicles: [rentedVehicleSchema],
     totalHT: Number,
-    tva: Number, // Ajout du champ TVA
-    css: Number, // Ajout du champ CSS
+    tva: Number,
+    css: Number,
+    totalTTC: Number, // Ajout du champ TOTAL TTC
 }, { timestamps: true });
 
 const Invoice = mongoose.model("Invoice", invoiceSchema);
