@@ -5,7 +5,7 @@ const rentedVehicleSchema = new mongoose.Schema({
     modele: String,
     dailyRate: Number,
     daysRented: Number,
-    montant: Number, // Stores the calculated amount
+    montant: Number, // Stocke le montant calculé
 });
 
 const invoiceSchema = new mongoose.Schema({
@@ -18,7 +18,7 @@ const invoiceSchema = new mongoose.Schema({
         endDate: Date,
     },
     vehicles: [rentedVehicleSchema],
-    totalHT: Number, // Stores the sum of all montants
+    totalHT: Number, // Stocke la somme de tous les montants
 }, { timestamps: true });
 
 const Invoice = mongoose.model("Invoice", invoiceSchema);

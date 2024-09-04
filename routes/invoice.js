@@ -3,19 +3,19 @@ const router = express.Router();
 const Invoice = require("../models/Invoice");
 const Client = require("../models/Client");
 
-// Generate Invoice Number
+// Générer le numéro de facture
 const generateInvoiceNumber = async () => {
     const count = await Invoice.countDocuments();
     return (count + 1).toString().padStart(7, '0');
 };
 
-// Add a new invoice
+// Ajouter une nouvelle facture
 router.post("/add", async (req, res) => {
-    const { clientId, issuedBy, billingPeriod, vehicles } = req.body;
+    const { clientId, issuedBy, billingPeriod, vehicles, totalHT } = req.body;
 
     try {
         const client = await Client.findById(clientId);
-        if (!client) return res.status(404).json({ error: "Client not found" });
+        if (!client) return res.status(404).json({ error: "Client non trouvé" });
 
         const invoiceNumber = await generateInvoiceNumber();
         const newInvoice = new Invoice({
@@ -24,22 +24,23 @@ router.post("/add", async (req, res) => {
             issuedBy,
             billingPeriod,
             vehicles,
+            totalHT, // Inclure le champ totalHT ici
         });
 
         await newInvoice.save();
         res.status(201).json(newInvoice);
     } catch (error) {
-        res.status(500).json({ error: "Failed to add invoice" });
+        res.status(500).json({ error: "Échec de l'ajout de la facture" });
     }
 });
 
-// Get all invoices
+// Obtenir toutes les factures
 router.get("/", async (req, res) => {
     try {
         const invoices = await Invoice.find().populate('client');
         res.status(200).json(invoices);
     } catch (error) {
-        res.status(500).json({ error: "Failed to fetch invoices" });
+        res.status(500).json({ error: "Échec de la récupération des factures" });
     }
 });
 
