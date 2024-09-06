@@ -11,7 +11,7 @@ const generateInvoiceNumber = async () => {
 
 // Ajouter une nouvelle facture
 router.post("/add", async (req, res) => {
-    const { clientId, issuedBy, billingPeriod, vehicles, totalHT, tva, css, totalTTC, remise ,totalNet } = req.body;
+    const { clientId, issuedBy, billingPeriod, vehicles, totalHT, tva, css, totalTTC, remise, totalNet } = req.body;
 
     try {
         // Vérifier si le client existe
@@ -21,7 +21,7 @@ router.post("/add", async (req, res) => {
         // Générer un numéro de facture unique
         const invoiceNumber = await generateInvoiceNumber();
 
-        // Créer un nouveau document de facture avec les détails fournis
+        // Créer un nouveau document de facture
         const newInvoice = new Invoice({
             client: clientId,
             invoiceNumber,
@@ -31,9 +31,9 @@ router.post("/add", async (req, res) => {
             totalHT,
             tva,
             css,
-            totalTTC, // Champ TOTAL TTC calculé
-            remise: remise || 0, // Inclure la remise si elle est appliquée
-            totalNet, // Add Total Net here
+            totalTTC,
+            remise: remise || 0,
+            totalNet,
         });
 
         // Enregistrer la facture dans la base de données
