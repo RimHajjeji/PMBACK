@@ -25,6 +25,7 @@ const invoiceSchema = new mongoose.Schema({
     css: { type: Number, required: true }, // CSS à 1%
     totalTTC: { type: Number, required: true }, // Total TTC
     remise: { type: Number, default: 0 }, // Remise (si appliquée)
+    totalNet: { type: Number, required: true }, // Add totalNet field
 }, { timestamps: true });
 
 const Invoice = mongoose.model("Invoice", invoiceSchema);
