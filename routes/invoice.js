@@ -54,5 +54,18 @@ router.get("/", async (req, res) => {
         res.status(500).json({ error: "Échec de la récupération des factures", details: error.message });
     }
 });
+// Fetch a single invoice by ID
+router.get("/:invoiceId", async (req, res) => {
+    try {
+        const { invoiceId } = req.params;
+        const invoice = await Invoice.findById(invoiceId).populate('client');
+        if (!invoice) {
+            return res.status(404).json({ error: "Invoice not found" });
+        }
+        res.status(200).json(invoice);
+    } catch (error) {
+        res.status(500).json({ error: "Error fetching invoice", details: error.message });
+    }
+});
 
 module.exports = router;
