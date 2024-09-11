@@ -16,6 +16,7 @@ app.use("/api/admin", require("./routes/admin"));
 app.use("/api/clients", require("./routes/client"));
 app.use("/api/categories", require("./routes/category"));
 app.use("/api/invoices", require("./routes/invoice")); // Add invoice route
+app.use("/api/devis", require("./routes/devis")); // route pour les devis
 
 app.listen(5000, () => {
     console.log("Server is Running on port 5000!!!");
