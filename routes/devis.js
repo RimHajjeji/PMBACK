@@ -11,7 +11,7 @@ const generateDevisNumber = async () => {
 
 // Ajouter un nouveau devis
 router.post("/add", async (req, res) => {
-    const { clientId, issuedBy, billingPeriod, vehicles, totalHT, tva, css, totalTTC, remise, totalNet } = req.body;
+    const { clientId, issuedBy, validityPeriod, vehicles, totalHT, tva, css, totalTTC, remise, totalNet } = req.body;
 
     try {
         // Vérifier si le client existe
@@ -24,9 +24,9 @@ router.post("/add", async (req, res) => {
         // Créer un nouveau document de devis
         const newDevis = new Devis({
             client: clientId,
-            devisNumber,
+            quoteNumber: devisNumber,
             issuedBy,
-            billingPeriod,
+            validityPeriod,
             vehicles,
             totalHT,
             tva,
