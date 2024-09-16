@@ -1,71 +1,105 @@
+// routes/invoices.js
 const express = require("express");
 const router = express.Router();
 const Invoice = require("../models/Invoice");
 const Client = require("../models/Client");
 
-// Générer le numéro de facture automatiquement
+// Function to generate a unique invoice number
 const generateInvoiceNumber = async () => {
-    const count = await Invoice.countDocuments();
-    return (count + 1).toString().padStart(7, '0');
+  const count = await Invoice.countDocuments();
+  return (count + 1).toString().padStart(7, "0");
 };
 
-// Ajouter une nouvelle facture
+// POST route to add a new invoice
 router.post("/add", async (req, res) => {
-    const { clientId, issuedBy, billingPeriod, vehicles, totalHT, tva, css, totalTTC, remise, totalNet } = req.body;
+  try {
+    const {
+      clientId,
+      issuedBy,
+      billingPeriod,
+      vehicles,
+      totalHT,
+      tva,
+      css,
+      totalTTC,
+      remise,
+      discountPercentage,
+      totalNet,
+    } = req.body;
 
-    try {
-        // Vérifier si le client existe
-        const client = await Client.findById(clientId);
-        if (!client) return res.status(404).json({ error: "Client non trouvé" });
-
-        // Générer un numéro de facture unique
-        const invoiceNumber = await generateInvoiceNumber();
-
-        // Créer un nouveau document de facture
-        const newInvoice = new Invoice({
-            client: clientId,
-            invoiceNumber,
-            issuedBy,
-            billingPeriod,
-            vehicles,
-            totalHT,
-            tva,
-            css,
-            totalTTC,
-            remise: remise || 0,
-            totalNet,
-        });
-
-        // Enregistrer la facture dans la base de données
-        await newInvoice.save();
-        res.status(201).json(newInvoice);
-    } catch (error) {
-        res.status(500).json({ error: "Échec de l'ajout de la facture", details: error.message });
+    // Validate required fields
+    if (
+      !clientId ||
+      !issuedBy ||
+      !billingPeriod.startDate ||
+      !billingPeriod.endDate ||
+      !vehicles ||
+      vehicles.length === 0 ||
+      totalHT === undefined ||
+      tva === undefined ||
+      css === undefined ||
+      totalTTC === undefined ||
+      totalNet === undefined
+    ) {
+      return res.status(400).json({ error: "Tous les champs requis doivent être remplis." });
     }
+
+    // Check if client exists
+    const client = await Client.findById(clientId);
+    if (!client) return res.status(404).json({ error: "Client non trouvé." });
+
+    // Generate a unique invoice number
+    const invoiceNumber = await generateInvoiceNumber();
+
+    // Create a new invoice document
+    const newInvoice = new Invoice({
+      client: clientId,
+      invoiceNumber,
+      issuedBy,
+      billingPeriod,
+      vehicles,
+      totalHT,
+      tva,
+      css,
+      totalTTC,
+      remise: remise || 0,
+      discountPercentage: discountPercentage || 0,
+      totalNet,
+    });
+
+    // Save the invoice to the database
+    await newInvoice.save();
+    res.status(201).json({ message: "Facture créée avec succès.", invoice: newInvoice });
+  } catch (error) {
+    console.error("Erreur lors de la création de la facture:", error);
+    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+  }
 });
 
-// Récupérer toutes les factures avec les détails du client
+// GET route to fetch all invoices with client details
 router.get("/", async (req, res) => {
-    try {
-        // Récupérer toutes les factures et les clients associés
-        const invoices = await Invoice.find().populate('client');
-        res.status(200).json(invoices);
-    } catch (error) {
-        res.status(500).json({ error: "Échec de la récupération des factures", details: error.message });
-    }
+  try {
+    const invoices = await Invoice.find().populate("client");
+    res.status(200).json(invoices);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des factures:", error);
+    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+  }
 });
-// Fetch a single invoice by ID
+
+// GET route to fetch a single invoice by ID
 router.get("/:invoiceId", async (req, res) => {
-    try {
-        const { invoiceId } = req.params;
-        const invoice = await Invoice.findById(invoiceId).populate('client');
-        if (!invoice) {
-            return res.status(404).json({ error: "Invoice not found" });
-        }
-        res.status(200).json(invoice);
-    } catch (error) {
-        res.status(500).json({ error: "Error fetching invoice", details: error.message });
+  try {
+    const { invoiceId } = req.params;
+    const invoice = await Invoice.findById(invoiceId).populate("client");
+    if (!invoice) {
+      return res.status(404).json({ error: "Facture non trouvée." });
     }
+    res.status(200).json(invoice);
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la facture:", error);
+    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+  }
 });
 
 module.exports = router;
