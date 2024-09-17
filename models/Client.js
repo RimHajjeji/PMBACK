@@ -17,6 +17,14 @@ const clientSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    codeClient: { // Added "code client" field
+        type: String,
+        required: true,
+    },
+    typeClient: { // Added "type client" field
+        type: String,
+        required: true,
+    },
 }, { timestamps: true });
 
 const Client = mongoose.model("Client", clientSchema);

@@ -4,10 +4,10 @@ const Client = require("../models/Client");
 
 // Add a new client
 router.post("/add", async (req, res) => {
-    const { firstName, lastName, phone, email } = req.body;
+    const { firstName, lastName, phone, email ,codeClient, typeClient} = req.body;
 
     try {
-        const newClient = new Client({ firstName, lastName, phone, email });
+        const newClient = new Client({ firstName, lastName, phone, email , codeClient, typeClient });
         await newClient.save();
         res.status(201).json(newClient);
     } catch (error) {
