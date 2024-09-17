@@ -1,4 +1,3 @@
-// routes/invoices.js
 const express = require("express");
 const router = express.Router();
 const Invoice = require("../models/Invoice");
@@ -6,8 +5,10 @@ const Client = require("../models/Client");
 
 // Function to generate a unique invoice number
 const generateInvoiceNumber = async () => {
-  const count = await Invoice.countDocuments();
-  return (count + 1).toString().padStart(7, "0");
+  const lastInvoice = await Invoice.findOne().sort({ invoiceNumber: -1 });
+  const lastNumber = lastInvoice ? parseInt(lastInvoice.invoiceNumber.replace("PMC.", "")) : 0;
+  const newNumber = lastNumber + 1;
+  return `PMC.${newNumber}`;
 };
 
 // POST route to add a new invoice
