@@ -3,70 +3,108 @@ const router = express.Router();
 const Devis = require("../models/Devis");
 const Client = require("../models/Client");
 
-// Générer le numéro de devis automatiquement
+// Function to generate a unique devis number
+// Function to generate a unique devis number
 const generateDevisNumber = async () => {
-    const count = await Devis.countDocuments();
-    return (count + 1).toString().padStart(7, '0');
-};
+    const lastDevis = await Devis.findOne().sort({ createdAt: -1 });
+    const lastNumber = lastDevis ? parseInt(lastDevis.devisNumber.replace("PMC.", "")) : 0;
+    const newNumber = lastNumber + 1;
+    return `PMC.${newNumber}`;
+  };
+  
 
-// Ajouter un nouveau devis
+// POST route to add a new devis
+// POST route to add a new devis
 router.post("/add", async (req, res) => {
-    const { clientId, issuedBy, validityPeriod, vehicles, totalHT, tva, css, totalTTC, remise, totalNet } = req.body;
-
     try {
-        // Vérifier si le client existe
-        const client = await Client.findById(clientId);
-        if (!client) return res.status(404).json({ error: "Client non trouvé" });
-
-        // Générer un numéro de devis unique
-        const devisNumber = await generateDevisNumber();
-
-        // Créer un nouveau document de devis
-        const newDevis = new Devis({
-            client: clientId,
-            quoteNumber: devisNumber,
-            issuedBy,
-            validityPeriod,
-            vehicles,
-            totalHT,
-            tva,
-            css,
-            totalTTC,
-            remise: remise || 0,
-            totalNet,
-        });
-
-        // Enregistrer le devis dans la base de données
-        await newDevis.save();
-        res.status(201).json(newDevis);
+      const {
+        clientId,
+        issuedBy,
+        billingPeriod,
+        vehicles,
+        totalHT,
+        tva,
+        css,
+        totalTTC,
+        remise,
+        discountPercentage,
+        totalNet,
+      } = req.body;
+  
+      // Validate required fields
+      if (
+        !clientId ||
+        !issuedBy ||
+        !billingPeriod.startDate ||
+        !billingPeriod.endDate ||
+        !vehicles ||
+        vehicles.length === 0 ||
+        totalHT === undefined ||
+        tva === undefined ||
+        css === undefined ||
+        totalTTC === undefined ||
+        totalNet === undefined
+      ) {
+        return res.status(400).json({ error: "Tous les champs requis doivent être remplis." });
+      }
+  
+      // Check if client exists
+      const client = await Client.findById(clientId);
+      if (!client) return res.status(404).json({ error: "Client non trouvé." });
+  
+      // Generate a unique devis number
+      const devisNumber = await generateDevisNumber();
+  
+      // Create a new devis document
+      const newDevis = new Devis({
+        client: clientId,
+        devisNumber,
+        issuedBy,
+        billingPeriod,
+        vehicles,
+        totalHT,
+        tva,
+        css,
+        totalTTC,
+        remise: remise || 0,
+        discountPercentage: discountPercentage || 0,
+        totalNet,
+      });
+  
+      // Save the devis to the database
+      await newDevis.save();
+      res.status(201).json({ message: "Devis créé avec succès.", devis: newDevis });
     } catch (error) {
-        res.status(500).json({ error: "Échec de l'ajout du devis", details: error.message });
+      console.error("Erreur lors de la création du devis:", error);
+      res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
     }
-});
+  });
+  
 
-// Récupérer tous les devis avec les détails du client
+// GET route to fetch all devis with client details
 router.get("/", async (req, res) => {
-    try {
-        // Récupérer tous les devis et les clients associés
-        const devis = await Devis.find().populate('client');
-        res.status(200).json(devis);
-    } catch (error) {
-        res.status(500).json({ error: "Échec de la récupération des devis", details: error.message });
-    }
+  try {
+    const devis = await Devis.find().populate("client");
+    res.status(200).json(devis);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des devis:", error);
+    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+  }
 });
 
-// Récupérer un devis par ID
+// GET route to fetch a single devis by ID
 router.get("/:devisId", async (req, res) => {
-    try {
-        const { devisId } = req.params;
-        const devis = await Devis.findById(devisId).populate('client');
-        if (!devis) {
-            return res.status(404).json({ error: "Devis non trouvé" });
-        }
-        res.status(200).json(devis);
-    } catch (error) {
-        res.status(500).json({ error: "Erreur lors de la récupération du devis", details: error.message });
+  try {
+    const { devisId } = req.params;
+    const devis = await Devis.findById(devisId).populate("client");
+    if (!devis) {
+      return res.status(404).json({ error: "Devis non trouvé." });
     }
+    res.status(200).json(devis);
+  } catch (error) {
+    console.error("Erreur lors de la récupération du devis:", error);
+    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+  }
 });
 
 module.exports = router;
