@@ -5,6 +5,8 @@ const vehicleSchema = new mongoose.Schema({
     modele: { type: String, required: true },
     couleur: { type: String, required: true },
     plaque: { type: String, required: true },
+    gps: { type: Boolean, default: false }, // New field for GPS availability
+    gpsCode: { type: String } // New field for GPS code
 });
 
 const categorySchema = new mongoose.Schema({

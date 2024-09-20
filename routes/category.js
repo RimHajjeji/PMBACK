@@ -17,7 +17,7 @@ router.post("/add-category", async (req, res) => {
 // Add a vehicle to a specific category
 router.post("/add-vehicle/:categoryId", async (req, res) => {
     const { categoryId } = req.params;
-    const { marque, modele, couleur, plaque } = req.body;
+    const { marque, modele, couleur, plaque, gps, gpsCode } = req.body;
 
     try {
         const category = await Category.findById(categoryId);
@@ -25,7 +25,7 @@ router.post("/add-vehicle/:categoryId", async (req, res) => {
             return res.status(404).json({ message: "Category not found" });
         }
 
-        const newVehicle = { marque, modele, couleur, plaque };
+        const newVehicle = { marque, modele, couleur, plaque, gps, gpsCode };
         category.vehicles.push(newVehicle);
         await category.save();
         res.status(201).json(category);
@@ -33,6 +33,7 @@ router.post("/add-vehicle/:categoryId", async (req, res) => {
         res.status(500).json({ message: "Failed to add vehicle", error: err });
     }
 });
+
 
 // Delete a vehicle from a category
 router.delete("/delete-vehicle/:categoryId/:vehicleId", async (req, res) => {
