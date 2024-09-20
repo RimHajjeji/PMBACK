@@ -34,6 +34,27 @@ router.post("/add-vehicle/:categoryId", async (req, res) => {
     }
 });
 
+// Delete a vehicle from a category
+router.delete("/delete-vehicle/:categoryId/:vehicleId", async (req, res) => {
+    const { categoryId, vehicleId } = req.params;
+
+    try {
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+
+        category.vehicles = category.vehicles.filter(
+            (vehicle) => vehicle._id.toString() !== vehicleId
+        );
+
+        await category.save();
+        res.status(200).json(category);
+    } catch (err) {
+        res.status(500).json({ message: "Failed to delete vehicle", error: err });
+    }
+});
+
 // Get all categories with their vehicles
 router.get("/categories", async (req, res) => {
     try {
@@ -43,6 +64,5 @@ router.get("/categories", async (req, res) => {
         res.status(500).json({ message: "Failed to retrieve categories", error: err });
     }
 });
-   
 
 module.exports = router;
