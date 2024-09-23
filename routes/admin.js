@@ -59,6 +59,23 @@ router.post("/login", async (req, res) => {
     }
 });
 
+// Get admin details
+router.get("/profile", async (req, res) => {
+    try {
+        const admin = await Admin.findOne({});
+        if (!admin) {
+            return res.status(404).json({ msg: "Admin not found" });
+        }
+        res.json({ email: admin.email });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server error");
+    }
+});
+
+
+
+//update profile
 router.put("/update", async (req, res) => {
     const { email, password } = req.body;
 
