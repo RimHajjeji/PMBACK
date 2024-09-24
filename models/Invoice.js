@@ -1,12 +1,11 @@
-// models/Invoice.js
 const mongoose = require("mongoose");
 
-// Schema for rented vehicles
-const rentedVehicleSchema = new mongoose.Schema({
+// Schema for invoiced vehicles
+const invoicedVehicleSchema = new mongoose.Schema({
   marque: { type: String, required: true },
   modele: { type: String, required: true },
   dailyRate: { type: Number, required: true },
-  daysRented: { type: Number, required: true },
+  daysRented: { type: Number, required: true },  // Gardé pour la facturation
   montant: { type: Number, required: true },
 });
 
@@ -14,14 +13,14 @@ const rentedVehicleSchema = new mongoose.Schema({
 const invoiceSchema = new mongoose.Schema(
   {
     client: { type: mongoose.Schema.Types.ObjectId, ref: "Client", required: true },
-    invoiceNumber: { type: String, required: true, unique: true },
+    invoiceNumber: { type: String, required: true },  // Suppression de `unique: true`
     issuedBy: { type: String, required: true },
     date: { type: Date, default: Date.now },
     billingPeriod: {
       startDate: { type: Date, required: true },
       endDate: { type: Date, required: true },
     },
-    vehicles: { type: [rentedVehicleSchema], required: true },
+    vehicles: { type: [invoicedVehicleSchema], required: true },
     totalHT: { type: Number, required: true },
     tva: { type: Number, required: true },
     css: { type: Number, required: true },
