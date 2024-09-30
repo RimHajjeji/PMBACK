@@ -4,16 +4,15 @@ const Devis = require("../models/Devis");
 const Client = require("../models/Client");
 
 // Function to generate a unique devis number
-// Function to generate a unique devis number
 const generateDevisNumber = async () => {
-    const lastDevis = await Devis.findOne().sort({ createdAt: -1 });
-    const lastNumber = lastDevis ? parseInt(lastDevis.devisNumber.replace("PMC.", "")) : 0;
-    const newNumber = lastNumber + 1;
-    return `PMC.${newNumber}`;
-  };
+  const lastDevis = await Devis.findOne().sort({ createdAt: -1 });
+  const lastNumber = lastDevis ? parseInt(lastDevis.devisNumber.replace("PMC.", "")) : 336; 
+  const newNumber = lastNumber + 1;
+  return `PMC.${newNumber}`;
+};
+
   
 
-// POST route to add a new devis
 // POST route to add a new devis
 router.post("/add", async (req, res) => {
     try {

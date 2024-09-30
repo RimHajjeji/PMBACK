@@ -6,7 +6,7 @@ const Client = require("../models/Client");
 // Function to generate a unique invoice number
 const generateInvoiceNumber = async () => {
     const lastInvoice = await Invoice.findOne().sort({ createdAt: -1 });
-    const lastNumber = lastInvoice ? parseInt(lastInvoice.invoiceNumber.replace("PMC.", "")) : 0;
+    const lastNumber = lastInvoice ? parseInt(lastInvoice.invoiceNumber.replace("PMC.", "")) : 343; 
     const newNumber = lastNumber + 1;
     return `PMC.${newNumber}`;
 };
