@@ -45,7 +45,7 @@ app.get("/test", (req, res) => {
 });
 
 // Utiliser le port dynamique fourni par l'hébergeur ou 5000 par défaut
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 6000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
