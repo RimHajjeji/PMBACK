@@ -1,8 +1,12 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require('cors');
+const dotenv = require('dotenv');
 
-const app = express(); 
+// Charger les variables d'environnement
+dotenv.config();
+
+const app = express();
 
 // Configuration CORS : autoriser uniquement le domaine de production et localhost en développement
 const corsOptions = {
@@ -19,10 +23,12 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connexion à la base de données MongoDB
-mongoose.connect("mongodb+srv://admin:admin12345678@cluster0.awqce.mongodb.net/PM", {
+mongoose.connect(process.env.MONGODB_URI || "mongodb+srv://admin:admin12345678@cluster0.awqce.mongodb.net/PM", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-});
+})
+.then(() => console.log("MongoDB connected successfully"))
+.catch(err => console.log("MongoDB connection error: ", err));
 
 // Définition des routes
 app.use("/api/admin", require("./routes/admin"));
@@ -31,7 +37,13 @@ app.use("/api/categories", require("./routes/category"));
 app.use("/api/invoices", require("./routes/invoice")); // Route pour les factures
 app.use("/api/devis", require("./routes/devis")); // Route pour les devis
 
-// Lancement du serveur sur le port 5000
-app.listen(5000, () => {
-    console.log("Server is Running on port 5000!!!");
+// Route de test pour vérifier que le serveur fonctionne
+app.get("/test", (req, res) => {
+    res.send("Server is running!");
+});
+
+// Utiliser le port dynamique fourni par l'hébergeur ou 5000 par défaut
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
