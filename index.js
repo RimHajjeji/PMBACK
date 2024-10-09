@@ -23,7 +23,9 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connexion à la base de données MongoDB
-mongoose.connect(process.env.MONGODB_URI || "mongodb+srv://admin:admin12345678@cluster0.awqce.mongodb.net/PM", {
+const mongoUri = process.env.MONGODB_URI;
+
+mongoose.connect(mongoUri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
