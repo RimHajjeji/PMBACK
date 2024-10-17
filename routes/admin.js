@@ -90,6 +90,7 @@ router.put("/update", async (req, res) => {
             admin.email = email;
         }
 
+        // If a new password is provided, hash it before saving
         if (password) {
             const salt = await bcrypt.genSalt(10);
             admin.password = await bcrypt.hash(password, salt);
@@ -102,6 +103,7 @@ router.put("/update", async (req, res) => {
         res.status(500).send("Server error");
     }
 });
+
 
 
 module.exports = router;
