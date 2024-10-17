@@ -1,5 +1,4 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Admin = require("../models/Admin");
 
@@ -17,13 +16,13 @@ router.post("/signup", async (req, res) => {
 
         admin = new Admin({
             email,
-            password,
+            password, // Stocker le mot de passe sans cryptage
         });
 
         await admin.save();
 
         const token = jwt.sign({ id: admin._id }, "yourJWTSecret", {
-            expiresIn: 3600, // 1 hour
+            expiresIn: 3600, // 1 heure
         });
 
         res.json({ token });
@@ -43,12 +42,8 @@ router.post("/login", async (req, res) => {
             return res.status(400).json({ msg: "Invalid credentials" });
         }
 
-        console.log("Mot de passe fourni:", password); // DEBUG pour vérifier le mot de passe entré
-        console.log("Mot de passe dans la base de données:", admin.password); // DEBUG pour vérifier le mot de passe haché
-
-        // Comparer le mot de passe fourni avec celui haché dans la base de données
-        const isMatch = await bcrypt.compare(password, admin.password);
-        if (!isMatch) {
+        // Comparer directement le mot de passe sans cryptage
+        if (password !== admin.password) {
             return res.status(400).json({ msg: "Invalid credentials" });
         }
 
@@ -63,7 +58,6 @@ router.post("/login", async (req, res) => {
     }
 });
 
-
 // Get admin details
 router.get("/profile", async (req, res) => {
     try {
@@ -77,8 +71,6 @@ router.get("/profile", async (req, res) => {
         res.status(500).send("Server error");
     }
 });
-
-
 
 // Update admin profile
 router.put("/update", async (req, res) => {
@@ -96,25 +88,18 @@ router.put("/update", async (req, res) => {
             admin.email = email;
         }
 
-        // Si un nouveau mot de passe est fourni, on le hache avant de le sauvegarder
+        // Mise à jour du mot de passe si fourni (sans hachage)
         if (password) {
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
-            console.log("Mot de passe haché:", hashedPassword); // DEBUG pour vérifier le hash
-            admin.password = hashedPassword; // Stocker le mot de passe haché
+            admin.password = password; // Stocker le mot de passe en clair
         }
 
         await admin.save();
-        console.log("Admin mis à jour:", admin); // DEBUG pour vérifier si l'admin est bien mis à jour
-
         res.json({ msg: "Admin updated successfully" });
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server error");
+        
     }
 });
-
-
-
 
 module.exports = router;
