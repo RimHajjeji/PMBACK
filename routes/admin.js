@@ -87,31 +87,43 @@ router.get("/profile", async (req, res) => {
 
 // Update admin profile
 router.put("/update", async (req, res) => {
-    const { email, password } = req.body;
+    const token = req.header("x-auth-token"); // Get the token from the headers
+
+    if (!token) {
+        return res.status(401).json({ msg: "No token, authorization denied" });
+    }
 
     try {
-        const admin = await Admin.findOne({});
+        // Verify the token and get the admin's ID
+        const decoded = jwt.verify(token, "yourJWTSecret");
+        
+        // Find the admin by ID
+        const admin = await Admin.findById(decoded.id);
 
         if (!admin) {
             return res.status(404).json({ msg: "Admin not found" });
         }
 
-        // Mise à jour de l'email si fourni
+        // Update the email if provided
+        const { email, password } = req.body;
         if (email) {
             admin.email = email;
         }
 
-        // Mise à jour du mot de passe si fourni (sans hachage)
+        // Update the password if provided (no hashing as per your request)
         if (password) {
-            admin.password = password; // Stocker le mot de passe en clair
+            admin.password = password; // Storing the password in plain text
         }
 
+        // Save the updated admin data
         await admin.save();
+
         res.json({ msg: "Admin updated successfully" });
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server error");
     }
 });
+
 
 module.exports = router;
