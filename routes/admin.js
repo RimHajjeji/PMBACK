@@ -58,13 +58,26 @@ router.post("/login", async (req, res) => {
     }
 });
 
-// Get admin details
+// Get specific admin details
 router.get("/profile", async (req, res) => {
+    // Extract the token from the request headers
+    const token = req.header("x-auth-token");
+
+    if (!token) {
+        return res.status(401).json({ msg: "No token, authorization denied" });
+    }
+
     try {
-        const admin = await Admin.findOne({});
+        // Verify the token and get the admin's ID
+        const decoded = jwt.verify(token, "yourJWTSecret");
+
+        // Find the admin by ID
+        const admin = await Admin.findById(decoded.id).select("-password"); // Exclude password from the result
         if (!admin) {
             return res.status(404).json({ msg: "Admin not found" });
         }
+
+        // Return admin details
         res.json({ email: admin.email });
     } catch (err) {
         console.error(err.message);
@@ -98,7 +111,6 @@ router.put("/update", async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server error");
-        
     }
 });
 
