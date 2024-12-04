@@ -85,6 +85,7 @@ router.get("/profile", async (req, res) => {
     }
 });
 
+
 // Update admin profile
 router.put("/update", async (req, res) => {
     const token = req.header("x-auth-token"); // Get the token from the headers
