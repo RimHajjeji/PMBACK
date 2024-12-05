@@ -19,7 +19,7 @@ router.post("/add", async (req, res) => {
       issuedBy,
       billingPeriod,
       vehicles,
-      fraisSupplementaires, // Nouveau champ
+      fraisSupplementaires,
       totalHT,
       tva,
       css,
@@ -27,6 +27,8 @@ router.post("/add", async (req, res) => {
       remise,
       discountPercentage,
       totalNet,
+      acompte, // Nouveau champ
+      montantRemboursement, // Nouveau champ
     } = req.body;
 
     // Validation des champs requis
@@ -60,7 +62,7 @@ router.post("/add", async (req, res) => {
       issuedBy,
       billingPeriod,
       vehicles,
-      fraisSupplementaires, // Ajout des frais supplémentaires dans la facture
+      fraisSupplementaires,
       totalHT,
       tva,
       css,
@@ -68,6 +70,8 @@ router.post("/add", async (req, res) => {
       remise: remise || 0,
       discountPercentage: discountPercentage || 0,
       totalNet,
+      acompte: acompte || 0, // Enregistrer l'acompte
+      montantRemboursement: montantRemboursement || 0, // Enregistrer le remboursement
     });
 
     // Sauvegarder la facture dans la base de données
@@ -101,6 +105,34 @@ router.get("/:invoiceId", async (req, res) => {
     res.status(200).json(invoice);
   } catch (error) {
     console.error("Erreur lors de la récupération de la facture:", error);
+    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+  }
+});
+
+// PUT route to update an invoice (including acompte or remboursement)
+router.put("/:invoiceId", async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+    const { acompte, montantRemboursement, ...updateData } = req.body;
+
+    const updatedInvoice = await Invoice.findByIdAndUpdate(
+      invoiceId,
+      {
+        $set: {
+          ...updateData,
+          acompte: acompte || 0,
+          montantRemboursement: montantRemboursement || 0,
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedInvoice) {
+      return res.status(404).json({ error: "Facture non trouvée." });
+    }
+    res.status(200).json({ message: "Facture mise à jour avec succès.", invoice: updatedInvoice });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de la facture:", error);
     res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
   }
 });
