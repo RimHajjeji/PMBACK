@@ -137,4 +137,29 @@ router.put("/:invoiceId", async (req, res) => {
   }
 });
 
+// GET route to fetch invoices of a specific client by clientId
+router.get("/client/:clientId", async (req, res) => {
+    try {
+        const { clientId } = req.params; // Récupère le clientId depuis les paramètres de l'URL
+        console.log("Client ID reçu :", clientId); // Log pour debug
+
+        // Vérifier si le client existe
+        const client = await Client.findById(clientId);
+        if (!client) {
+            return res.status(404).json({ error: "Client non trouvé." });
+        }
+
+        // Rechercher toutes les factures liées au client
+        const invoices = await Invoice.find({ client: clientId }).populate("client");
+
+        res.status(200).json({
+            message: `Factures pour le client ${client.nom || clientId}`,
+            invoices
+        });
+    } catch (error) {
+        console.error("Erreur lors de la récupération des factures du client:", error);
+        res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    }
+});
+
 module.exports = router;
