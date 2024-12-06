@@ -92,16 +92,17 @@ router.get("/", async (req, res) => {
 router.get("/:invoiceId", async (req, res) => {
     try {
         const { invoiceId } = req.params;
-        const invoice = await Invoice.findById(invoiceId).populate("client");
+        const invoice = await Invoice.findById(invoiceId).populate("client"); // Populate client details
         if (!invoice) {
             return res.status(404).json({ error: "Facture non trouvée." });
         }
-        res.status(200).json(invoice);
+        res.status(200).json(invoice); // Renvoie la facture avec les détails du client
     } catch (error) {
         console.error("Erreur lors de la récupération de la facture:", error);
         res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
     }
 });
+
 
 // GET route to fetch invoices of a specific client by clientId
 router.get("/client/:clientId", async (req, res) => {
@@ -127,5 +128,61 @@ router.get("/client/:clientId", async (req, res) => {
         res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
     }
 });
+
+// PUT route to update an invoice by ID
+router.put("/:invoiceId", async (req, res) => {
+    try {
+        const { invoiceId } = req.params; // Récupérer l'ID de la facture depuis les paramètres
+        const updateData = req.body; // Récupérer les données de mise à jour depuis le corps de la requête
+
+        // Vérifier si la facture existe
+        const invoice = await Invoice.findById(invoiceId);
+        if (!invoice) {
+            return res.status(404).json({ error: "Facture non trouvée." });
+        }
+
+        // Mettre à jour la facture avec les nouvelles données
+        Object.keys(updateData).forEach((key) => {
+            invoice[key] = updateData[key];
+        });
+
+        // Sauvegarder les modifications dans la base de données
+        await invoice.save();
+
+        res.status(200).json({
+            message: "Facture mise à jour avec succès.",
+            invoice,
+        });
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour de la facture:", error);
+        res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    }
+});
+
+
+
+
+// Récupérer les marques et modèles uniques
+router.get("/vehicles/brands-and-models", async (req, res) => {
+  try {
+    const marques = await Invoice.distinct("vehicles.marque");
+    const modelesByMarque = {};
+
+    for (const marque of marques) {
+      const modeles = await Invoice.distinct("vehicles.modele", {
+        "vehicles.marque": marque,
+      });
+      modelesByMarque[marque] = modeles;
+    }
+
+    res.json({ marques, modelesByMarque });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erreur lors de la récupération des marques et modèles." });
+  }
+});
+
+module.exports = router;
+
 
 module.exports = router;

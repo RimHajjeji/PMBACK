@@ -25,4 +25,18 @@ router.get("/", async (req, res) => {
     }
 });
 
+// Route pour récupérer un client spécifique par son ID
+router.get("/:clientId", async (req, res) => {
+    try {
+      const client = await Client.findById(req.params.clientId);
+      if (!client) {
+        return res.status(404).json({ error: "Client introuvable." });
+      }
+      res.status(200).json(client);
+    } catch (error) {
+      console.error("Erreur lors de la récupération du client:", error);
+      res.status(500).json({ error: "Erreur interne du serveur." });
+    }
+  });
+
 module.exports = router;
