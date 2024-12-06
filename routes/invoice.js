@@ -94,6 +94,7 @@ router.get("/", async (req, res) => {
   }
 });
 
+
 // GET route to fetch a single invoice by ID
 router.get("/:invoiceId", async (req, res) => {
   try {
