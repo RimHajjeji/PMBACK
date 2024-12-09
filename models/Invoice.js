@@ -28,6 +28,7 @@ const invoiceSchema = new mongoose.Schema(
       fraisChauffeur: { type: Number },
     },
     totalHT: { type: Number, required: true },
+    totalHTFrais: { type: Number, required: true },
     tva: { type: Number, required: true },
     css: { type: Number, required: true },
     totalTTC: { type: Number, required: true },

@@ -21,6 +21,7 @@ router.post("/add", async (req, res) => {
       vehicles,
       fraisSupplementaires,
       totalHT,
+      totalHTFrais,
       tva,
       css,
       totalTTC,
@@ -40,6 +41,7 @@ router.post("/add", async (req, res) => {
       !vehicles ||
       vehicles.length === 0 ||
       totalHT === undefined ||
+      totalHTFrais === undefined ||
       tva === undefined ||
       css === undefined ||
       totalTTC === undefined ||
@@ -64,6 +66,7 @@ router.post("/add", async (req, res) => {
       vehicles,
       fraisSupplementaires,
       totalHT,
+      totalHTFrais,
       tva,
       css,
       totalTTC,
