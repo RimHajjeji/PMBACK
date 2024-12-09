@@ -5,7 +5,7 @@ const invoicedVehicleSchema = new mongoose.Schema({
   marque: { type: String, required: true },
   modele: { type: String, required: true },
   dailyRate: { type: Number, required: true },
-  daysRented: { type: Number, required: true },  // Gardé pour la facturation
+  daysRented: { type: Number, required: true },
   montant: { type: Number, required: true },
 });
 
@@ -13,7 +13,7 @@ const invoicedVehicleSchema = new mongoose.Schema({
 const invoiceSchema = new mongoose.Schema(
   {
     client: { type: mongoose.Schema.Types.ObjectId, ref: "Client", required: true },
-    invoiceNumber: { type: String, required: true },  // Suppression de `unique: true`
+    invoiceNumber: { type: String, required: true },
     issuedBy: { type: String, required: true },
     date: { type: Date, default: Date.now },
     billingPeriod: {
@@ -21,6 +21,12 @@ const invoiceSchema = new mongoose.Schema(
       endDate: { type: Date, required: true },
     },
     vehicles: { type: [invoicedVehicleSchema], required: true },
+    fraisSupplementaires: {
+      fraisCarburant: { type: Number, default: 0 },
+      fraisKilometrage: { type: Number, default: 0 },
+      fraisLivraison: { type: Number, default: 0 },
+      fraisChauffeur: { type: Number },
+    },
     totalHT: { type: Number, required: true },
     tva: { type: Number, required: true },
     css: { type: Number, required: true },
@@ -28,6 +34,9 @@ const invoiceSchema = new mongoose.Schema(
     remise: { type: Number, default: 0 },
     discountPercentage: { type: Number, default: 0 },
     totalNet: { type: Number, required: true },
+    
+    acompte: { type: Number , default: 0 }, // Nouveau champ pour l'acompte
+    montantRemboursement: { type: Number, default: 0 }, // Nouveau champ pour le remboursement
   },
   { timestamps: true }
 );
