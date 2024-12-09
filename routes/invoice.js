@@ -167,28 +167,4 @@ router.put("/:invoiceId", async (req, res) => {
 
 
 
-
-// Récupérer les marques et modèles uniques
-router.get("/vehicles/brands-and-models", async (req, res) => {
-  try {
-    const marques = await Invoice.distinct("vehicles.marque");
-    const modelesByMarque = {};
-
-    for (const marque of marques) {
-      const modeles = await Invoice.distinct("vehicles.modele", {
-        "vehicles.marque": marque,
-      });
-      modelesByMarque[marque] = modeles;
-    }
-
-    res.json({ marques, modelesByMarque });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erreur lors de la récupération des marques et modèles." });
-  }
-});
-
-module.exports = router;
-
-
 module.exports = router;
