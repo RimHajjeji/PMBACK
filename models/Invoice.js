@@ -7,6 +7,8 @@ const invoicedVehicleSchema = new mongoose.Schema({
   dailyRate: { type: Number, required: true },
   daysRented: { type: Number, required: true },
   montant: { type: Number, required: true },
+  tarifType: { type: String, required: true }, // Nouveau champ pour le tarif type dapres le choix de lutilisateur  
+  durationType: { type: String, required: true },// Nouveau champ pour le   durationType dapres le choix de lutilisateur 
 });
 
 // Invoice Schema
