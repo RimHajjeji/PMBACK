@@ -45,21 +45,32 @@ router.post("/login", async (req, res) => {
             return res.status(400).json({ msg: "Invalid credentials" });
         }
 
-        // Comparer directement le mot de passe sans cryptage
+        // Directly compare the password (if no hashing is used)
         if (password !== admin.password) {
             return res.status(400).json({ msg: "Invalid credentials" });
         }
 
+        // Create a JWT token
         const token = jwt.sign({ id: admin._id }, "yourJWTSecret", {
-            expiresIn: 3600, // 1 heure
+            expiresIn: 3600, // Token valid for 1 hour
         });
 
-        res.json({ token });
+        // Include admin's name in the response
+        res.json({
+            token,
+            admin: {
+                id: admin._id,
+                nom: admin.nom,
+                prenom: admin.prenom,
+                email: admin.email,
+            },
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server error");
     }
 });
+
 
 // Get specific admin details
 router.get("/profile", async (req, res) => {
