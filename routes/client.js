@@ -39,4 +39,29 @@ router.get("/:clientId", async (req, res) => {
     }
   });
 
+  // Update a client by ID
+router.put("/:clientId", async (req, res) => {
+  const { clientId } = req.params;
+  const { firstName, lastName, phone, email, codeClient, typeClient } = req.body;
+
+  try {
+      const updatedClient = await Client.findByIdAndUpdate(
+          clientId,
+          { firstName, lastName, phone, email, codeClient, typeClient },
+          { new: true }
+      );
+
+      if (!updatedClient) {
+          return res.status(404).json({ error: "Client introuvable." });
+      }
+
+      res.status(200).json(updatedClient);
+  } catch (error) {
+      console.error("Erreur lors de la mise à jour du client:", error);
+      res.status(500).json({ error: "Erreur interne du serveur." });
+  }
+});
+
+module.exports = router;
+
 module.exports = router;
