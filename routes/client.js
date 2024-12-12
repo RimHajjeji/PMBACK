@@ -62,6 +62,21 @@ router.put("/:clientId", async (req, res) => {
   }
 });
 
-module.exports = router;
+// GET route to fetch client details by ID
+router.get("/:clientId", async (req, res) => {
+    try {
+        const { clientId } = req.params;
+        const client = await Client.findById(clientId);
+        if (!client) {
+            return res.status(404).json({ error: "Client non trouvé." });
+        }
+        res.status(200).json(client); // Assurez-vous que nom et prenom sont inclus ici
+    } catch (error) {
+        console.error("Erreur lors de la récupération du client :", error);
+        res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    }
+});
+
+
 
 module.exports = router;
