@@ -88,7 +88,10 @@ router.get("/profile", async (req, res) => {
             return res.status(404).json({ msg: "Admin not found" });
         }
 
-        res.json({ nom: admin.nom, prenom: admin.prenom, email: admin.email });
+        res.json({ 
+            nom: admin.nom, 
+            prenom: admin.prenom 
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server error");
@@ -96,7 +99,6 @@ router.get("/profile", async (req, res) => {
 });
 
 
-// Update admin profile
 router.put("/update", async (req, res) => {
     const token = req.header("x-auth-token");
 
@@ -106,21 +108,33 @@ router.put("/update", async (req, res) => {
 
     try {
         const decoded = jwt.verify(token, "yourJWTSecret");
-        
         const admin = await Admin.findById(decoded.id);
+
         if (!admin) {
             return res.status(404).json({ msg: "Admin not found" });
         }
 
-        const { nom, prenom, email, password } = req.body;
+        const { nom, prenom, email, oldPassword, newPassword, confirmPassword } = req.body;
+
+        // Vérification de l'ancien mot de passe
+        if (oldPassword && oldPassword !== admin.password) {
+            return res.status(400).json({ msg: "Ancien mot de passe incorrect" });
+        }
+
+        // Vérification du nouveau mot de passe
+        if (newPassword && newPassword !== confirmPassword) {
+            return res.status(400).json({ msg: "Le nouveau mot de passe et la confirmation ne correspondent pas" });
+        }
+
+        // Mise à jour des données
         if (nom) admin.nom = nom;
         if (prenom) admin.prenom = prenom;
         if (email) admin.email = email;
-        if (password) admin.password = password;
+        if (newPassword) admin.password = newPassword;
 
         await admin.save();
 
-        res.json({ msg: "Admin updated successfully" });
+        res.json({ msg: "Profil mis à jour avec succès" });
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server error");
