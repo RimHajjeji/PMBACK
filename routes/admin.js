@@ -30,7 +30,7 @@ router.post("/signup", async (req, res) => {
         await admin.save();
 
         const token = jwt.sign({ id: admin._id }, JWT_SECRET, {
-            expiresIn: "7d", // Expiration fixée à 7 jours
+            expiresIn: "100d", // Expiration fixée à 7 jours
         });
 
         validTokens.add(token); // Ajout du token valide
@@ -54,7 +54,7 @@ router.post("/login", async (req, res) => {
         }
 
         const token = jwt.sign({ id: admin._id }, JWT_SECRET, {
-            expiresIn: "7d", // Expiration fixée à 7 jours
+            expiresIn: "100d", 
         });
 
         validTokens.add(token); // Ajout du token valide
