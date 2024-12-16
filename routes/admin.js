@@ -3,6 +3,12 @@ const jwt = require("jsonwebtoken");
 const Admin = require("../models/Admin");
 
 const router = express.Router();
+const validTokens = new Set(); // Contient les tokens valides pour la session en cours
+
+const JWT_SECRET = "yourJWTSecret"; // À sécuriser avec des variables d'environnement
+
+// Fonction pour vérifier si un token est valide
+const isTokenValid = (token) => validTokens.has(token);
 
 // Admin signup route
 router.post("/signup", async (req, res) => {
@@ -18,15 +24,16 @@ router.post("/signup", async (req, res) => {
             nom,
             prenom,
             email,
-            password // Assurez-vous de sécuriser les mots de passe en production
+            password, // Assurez-vous de sécuriser les mots de passe en production
         });
 
         await admin.save();
 
-        const token = jwt.sign({ id: admin._id }, "yourJWTSecret", {
-            expiresIn: 3600 // 1 heure
+        const token = jwt.sign({ id: admin._id }, JWT_SECRET, {
+            expiresIn: "100d", // Expiration fixée à 7 jours
         });
 
+        validTokens.add(token); // Ajout du token valide
         res.json({ token });
     } catch (err) {
         console.error(err.message);
@@ -35,27 +42,22 @@ router.post("/signup", async (req, res) => {
 });
 
 
+
 // Admin login route
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     try {
         const admin = await Admin.findOne({ email });
-        if (!admin) {
+        if (!admin || password !== admin.password) {
             return res.status(400).json({ msg: "Invalid credentials" });
         }
 
-        // Directly compare the password (if no hashing is used)
-        if (password !== admin.password) {
-            return res.status(400).json({ msg: "Invalid credentials" });
-        }
-
-        // Create a JWT token
-        const token = jwt.sign({ id: admin._id }, "yourJWTSecret", {
-            expiresIn: 3600, // Token valid for 1 hour
+        const token = jwt.sign({ id: admin._id }, JWT_SECRET, {
+            expiresIn: "100d", 
         });
 
-        // Include admin's name in the response
+        validTokens.add(token); // Ajout du token valide
         res.json({
             token,
             admin: {
@@ -72,31 +74,41 @@ router.post("/login", async (req, res) => {
 });
 
 
+
+// Admin logout route
+router.post("/logout", async (req, res) => {
+    const token = req.header("x-auth-token");
+
+    if (!token || !isTokenValid(token)) {
+        return res.status(400).json({ msg: "Invalid or missing token" });
+    }
+
+    validTokens.delete(token); // Invalidation du token
+    res.json({ msg: "Déconnecté avec succès" });
+});
+
 // Get specific admin details
 router.get("/profile", async (req, res) => {
     const token = req.header("x-auth-token");
 
-    if (!token) {
-        return res.status(401).json({ msg: "No token, authorization denied" });
+    if (!token || !isTokenValid(token)) {
+        return res.status(401).json({ msg: "No token or invalid token" });
     }
 
     try {
-        const decoded = jwt.verify(token, "yourJWTSecret");
-
+        const decoded = jwt.verify(token, JWT_SECRET);
         const admin = await Admin.findById(decoded.id).select("-password");
         if (!admin) {
             return res.status(404).json({ msg: "Admin not found" });
         }
 
-        res.json({ 
-            nom: admin.nom, 
-            prenom: admin.prenom 
-        });
+        res.json({ nom: admin.nom, prenom: admin.prenom });
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server error");
     }
 });
+
 
 
 router.put("/update", async (req, res) => {
