@@ -48,9 +48,6 @@ const invoiceSchema = new mongoose.Schema(
     
     acompte: { type: Number , default: 0 }, // Nouveau champ pour l'acompte
     montantRemboursement: { type: Number, default: 0 }, // Nouveau champ pour le remboursement
-
-    // Historique des modifications
-    modificationHistory: [modificationHistorySchema],
   },
   { timestamps: true }
 );
