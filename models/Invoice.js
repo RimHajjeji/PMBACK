@@ -38,8 +38,9 @@ const invoiceSchema = new mongoose.Schema(
     discountPercentage: { type: Number, default: 0 },
     totalNet: { type: Number, required: true },
     
-    acompte: { type: Number , default: 0 }, // Nouveau champ pour l'acompte
-    montantRemboursement: { type: Number, default: 0 }, // Nouveau champ pour le remboursement
+    acompte: { type: Number , default: 0 }, 
+    montantRemboursement: { type: Number, default: 0 }, 
+    caution : { type: Number},
   },
   { timestamps: true }
 );
