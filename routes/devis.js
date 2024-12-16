@@ -12,6 +12,7 @@ const generateDevisNumber = async () => {
 };
 
 
+
 // POST route to add a new devis
 router.post("/add", async (req, res) => {
   try {
