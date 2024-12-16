@@ -6,7 +6,9 @@ const Client = require("../models/Client");
 // Function to generate a unique invoice number
 const generateInvoiceNumber = async () => {
   const lastInvoice = await Invoice.findOne().sort({ createdAt: -1 });
-  const lastNumber = lastInvoice ? parseInt(lastInvoice.invoiceNumber.replace("PMC.", "")) : 343;
+  const lastNumber = lastInvoice
+    ? parseInt(lastInvoice.invoiceNumber.replace("PMC.", ""))
+    : 343;
   const newNumber = lastNumber + 1;
   return `PMC.${newNumber}`;
 };
@@ -47,7 +49,9 @@ router.post("/add", async (req, res) => {
       totalTTC === undefined ||
       totalNet === undefined
     ) {
-      return res.status(400).json({ error: "Tous les champs requis doivent être remplis." });
+      return res
+        .status(400)
+        .json({ error: "Tous les champs requis doivent être remplis." });
     }
 
     // Vérifier si le client existe
@@ -80,10 +84,14 @@ router.post("/add", async (req, res) => {
 
     // Sauvegarder la facture dans la base de données
     await newInvoice.save();
-    res.status(201).json({ message: "Facture créée avec succès.", invoice: newInvoice });
+    res
+      .status(201)
+      .json({ message: "Facture créée avec succès.", invoice: newInvoice });
   } catch (error) {
     console.error("Erreur lors de la création de la facture:", error);
-    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
   }
 });
 
@@ -94,49 +102,59 @@ router.get("/", async (req, res) => {
     res.status(200).json(invoices);
   } catch (error) {
     console.error("Erreur lors de la récupération des factures:", error);
-    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
   }
 });
 
-
 // GET route to fetch a single invoice by ID
 router.get("/:invoiceId", async (req, res) => {
-    try {
-        const { invoiceId } = req.params;
-        const invoice = await Invoice.findById(invoiceId).populate("client");
-        if (!invoice) {
-            return res.status(404).json({ error: "Facture non trouvée." });
-        }
-        res.status(200).json(invoice);
-    } catch (error) {
-        console.error("Erreur lors de la récupération de la facture:", error);
-        res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+  try {
+    const { invoiceId } = req.params;
+    const invoice = await Invoice.findById(invoiceId).populate("client");
+    if (!invoice) {
+      return res.status(404).json({ error: "Facture non trouvée." });
     }
+    res.status(200).json(invoice);
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la facture:", error);
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
+  }
 });
 
 // GET route to fetch invoices of a specific client by clientId
 router.get("/client/:clientId", async (req, res) => {
-    try {
-        const { clientId } = req.params; // Récupère le clientId depuis les paramètres de l'URL
-        console.log("Client ID reçu :", clientId); // Log pour debug
+  try {
+    const { clientId } = req.params; // Récupère le clientId depuis les paramètres de l'URL
+    console.log("Client ID reçu :", clientId); // Log pour debug
 
-        // Vérifier si le client existe
-        const client = await Client.findById(clientId);
-        if (!client) {
-            return res.status(404).json({ error: "Client non trouvé." });
-        }
-
-        // Rechercher toutes les factures liées au client
-        const invoices = await Invoice.find({ client: clientId }).populate("client");
-
-        res.status(200).json({
-            message: `Factures pour le client ${client.nom || clientId}`,
-            invoices
-        });
-    } catch (error) {
-        console.error("Erreur lors de la récupération des factures du client:", error);
-        res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    // Vérifier si le client existe
+    const client = await Client.findById(clientId);
+    if (!client) {
+      return res.status(404).json({ error: "Client non trouvé." });
     }
+
+    // Rechercher toutes les factures liées au client
+    const invoices = await Invoice.find({ client: clientId }).populate(
+      "client",
+    );
+
+    res.status(200).json({
+      message: `Factures pour le client ${client.nom || clientId}`,
+      invoices,
+    });
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des factures du client:",
+      error,
+    );
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
+  }
 });
 
 // PUT route pour mettre à jour une facture et enregistrer l'historique des modifications
@@ -186,10 +204,11 @@ router.put("/:invoiceId", async (req, res) => {
     });
   } catch (error) {
     console.error("Erreur lors de la mise à jour de la facture:", error);
-    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
   }
 });
-
 
 // GET route pour récupérer l'historique des modifications d'une facture
 router.get("/:invoiceId/history", async (req, res) => {
@@ -204,8 +223,13 @@ router.get("/:invoiceId/history", async (req, res) => {
 
     res.status(200).json(invoice.modificationHistory);
   } catch (error) {
-    console.error("Erreur lors de la récupération de l'historique des modifications:", error);
-    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    console.error(
+      "Erreur lors de la récupération de l'historique des modifications:",
+      error,
+    );
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
   }
 });
 

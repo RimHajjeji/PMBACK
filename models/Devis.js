@@ -1,7 +1,13 @@
 const mongoose = require("mongoose");
 
-const quotedVehicleSchema = new mongoose.Schema({
+// Historique des modifications
+const modificationHistorySchema = new mongoose.Schema({
+  modifiedBy: { type: String, required: true }, // Nom et prénom de l'utilisateur
+  modifiedAt: { type: Date, default: Date.now }, // Date et heure de modification
+  changes: { type: Object, required: true }, // Objet contenant les modifications
+});
 
+const devisVehicleSchema = new mongoose.Schema({
   marque: { type: String, required: true },
   modele: { type: String, required: true },
   dailyRate: { type: Number, required: true },
@@ -23,7 +29,7 @@ const devisSchema = new mongoose.Schema(
       startDate: { type: Date, required: true },
       endDate: { type: Date, required: true },
     },
-    vehicles: { type: [quotedVehicleSchema], required: true },
+    vehicles: { type: [devisVehicleSchema], required: true },
     fraisSupplementaires: {
       fraisCarburant: { type: Number, default: 0 },
       fraisKilometrage: { type: Number, default: 0 },
@@ -41,6 +47,11 @@ const devisSchema = new mongoose.Schema(
     
     acompte: { type: Number , default: 0 }, // Nouveau champ pour l'acompte
     montantRemboursement: { type: Number, default: 0 }, // Nouveau champ pour le remboursement
+    caution : { type: Number},
+
+
+    // Historique des modifications
+    modificationHistory: [modificationHistorySchema],
   },
   { timestamps: true }
 );

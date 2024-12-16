@@ -6,7 +6,9 @@ const Client = require("../models/Client");
 // Function to generate a unique devis number
 const generateDevisNumber = async () => {
   const lastDevis = await Devis.findOne().sort({ createdAt: -1 });
-  const lastNumber = lastDevis ? parseInt(lastDevis.devisNumber.replace("PMC.", "")) : 336; 
+  const lastNumber = lastDevis
+    ? parseInt(lastDevis.devisNumber.replace("PMC.", ""))
+    : 343;
   const newNumber = lastNumber + 1;
   return `PMC.${newNumber}`;
 };
@@ -47,19 +49,20 @@ router.post("/add", async (req, res) => {
       totalTTC === undefined ||
       totalNet === undefined
     ) {
-      return res.status(400).json({ error: "Tous les champs requis doivent être remplis." });
+      return res
+        .status(400)
+        .json({ error: "Tous les champs requis doivent être remplis." });
     }
 
     // Vérifier si le client existe
     const client = await Client.findById(clientId);
     if (!client) return res.status(404).json({ error: "Client non trouvé." });
 
-    // Generate a unique devis number
+    // Générer le numéro de devis unique
     const devisNumber = await generateDevisNumber();
 
-   // Create a new devis document
-   const newDevis = new Devis({
-
+    // Créer une nouvelle devis
+    const newDevis = new Devis({
       client: clientId,
       devisNumber,
       issuedBy,
@@ -76,102 +79,158 @@ router.post("/add", async (req, res) => {
       totalNet,
       acompte: acompte || 0, // Enregistrer l'acompte
       montantRemboursement: montantRemboursement || 0, // Enregistrer le remboursement
+      modificationHistory: [],
     });
 
-   // Save the devis to the database
-   await newDevis.save();
-
-    res.status(201).json({ message: "Devis créée avec succès.", devis: newDevis });
+    // Sauvegarder la devis dans la base de données
+    await newDevis.save();
+    res
+      .status(201)
+      .json({ message: "Facture créée avec succès.", devis: newDevis });
   } catch (error) {
     console.error("Erreur lors de la création de la devis:", error);
-    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
   }
 });
 
-
+// GET route to fetch all devis with client details
 router.get("/", async (req, res) => {
   try {
     const devis = await Devis.find().populate("client");
     res.status(200).json(devis);
   } catch (error) {
     console.error("Erreur lors de la récupération des devis:", error);
-    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
   }
 });
-
 
 // GET route to fetch a single devis by ID
 router.get("/:devisId", async (req, res) => {
   try {
     const { devisId } = req.params;
-
     const devis = await Devis.findById(devisId).populate("client");
     if (!devis) {
-      return res.status(404).json({ error: "Devis non trouvé." });
+      return res.status(404).json({ error: "Facture non trouvée." });
     }
-
-        res.status(200).json(devis);
-    } catch (error) {
-        console.error("Erreur lors de la récupération de devis:", error);
-        res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
-    }
+    res.status(200).json(devis);
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la devis:", error);
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
+  }
 });
 
 // GET route to fetch devis of a specific client by clientId
 router.get("/client/:clientId", async (req, res) => {
-    try {
-        const { clientId } = req.params; // Récupère le clientId depuis les paramètres de l'URL
-        console.log("Client ID reçu :", clientId); // Log pour debug
+  try {
+    const { clientId } = req.params; // Récupère le clientId depuis les paramètres de l'URL
+    console.log("Client ID reçu :", clientId); // Log pour debug
 
-        // Vérifier si le client existe
-        const client = await Client.findById(clientId);
-        if (!client) {
-            return res.status(404).json({ error: "Client non trouvé." });
-        }
-
-        // Rechercher toutes les devis liées au client
-        const devis = await Devis.find({ client: clientId }).populate("client");
-
-        res.status(200).json({
-            message: `Devis pour le client ${client.nom || clientId}`,
-            devis
-        });
-    } catch (error) {
-        console.error("Erreur lors de la récupération des devis du client:", error);
-        res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    // Vérifier si le client existe
+    const client = await Client.findById(clientId);
+    if (!client) {
+      return res.status(404).json({ error: "Client non trouvé." });
     }
+
+    // Rechercher toutes les devis liées au client
+    const devis = await Devis.find({ client: clientId }).populate(
+      "client",
+    );
+
+    res.status(200).json({
+      message: `Factures pour le client ${client.nom || clientId}`,
+      devis,
+    });
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des devis du client:",
+      error,
+    );
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
+  }
 });
 
-// PUT route to update an devis by ID
+// PUT route pour mettre à jour une devis et enregistrer l'historique des modifications
 router.put("/:devisId", async (req, res) => {
-    try {
-        const { devisId } = req.params; // Récupérer l'ID de la devis depuis les paramètres
-        const updateData = req.body; // Récupérer les données de mise à jour depuis le corps de la requête
+  try {
+    const { devisId } = req.params;
+    const updateData = req.body;
+    const modifiedBy = req.body.modifiedBy || "Utilisateur inconnu"; // Utilisateur qui effectue la modification
 
-        // Vérifier si la devis existe
-        const devis = await Devis.findById(devisId);
-        if (!devis) {
-            return res.status(404).json({ error: "devis non trouvée." });
-        }
-
-        // Mettre à jour la devis avec les nouvelles données
-        Object.keys(updateData).forEach((key) => {
-            devis[key] = updateData[key];
-        });
-
-        // Sauvegarder les modifications dans la base de données
-        await devis.save();
-
-        res.status(200).json({
-            message: "Devis mise à jour avec succès.",
-            devis,
-        });
-    } catch (error) {
-        console.error("Erreur lors de la mise à jour de la devis:", error);
-        res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    // Récupérer la devis actuelle
+    const devis = await Devis.findById(devisId);
+    if (!devis) {
+      return res.status(404).json({ error: "Facture non trouvée." });
     }
+
+    // Préparer un objet pour enregistrer les changements
+    const changes = {};
+    Object.keys(updateData).forEach((key) => {
+      if (JSON.stringify(devis[key]) !== JSON.stringify(updateData[key])) {
+        changes[key] = {
+          oldValue: devis[key],
+          newValue: updateData[key],
+        };
+      }
+    });
+
+    // Ajouter l'entrée dans l'historique si des changements existent
+    if (Object.keys(changes).length > 0) {
+      const modificationRecord = {
+        modifiedBy,
+        modifiedAt: new Date(),
+        changes,
+      };
+      // Ajout de la modification dans l'historique
+      devis.modificationHistory.push(modificationRecord);
+    }
+
+    // Mettre à jour les données de la devis avec les nouvelles valeurs
+    Object.assign(devis, updateData);
+
+    // Sauvegarder les modifications dans la base de données
+    await devis.save();
+
+    res.status(200).json({
+      message: "Facture mise à jour avec succès.",
+      devis, // Retourne la devis mise à jour
+    });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de la devis:", error);
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
+  }
 });
 
+// GET route pour récupérer l'historique des modifications d'une devis
+router.get("/:devisId/history", async (req, res) => {
+  try {
+    const { devisId } = req.params;
 
+    // Récupérer la devis avec uniquement l'historique
+    const devis = await Devis.findById(devisId, "modificationHistory");
+    if (!devis) {
+      return res.status(404).json({ error: "Facture non trouvée." });
+    }
+
+    res.status(200).json(devis.modificationHistory);
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération de l'historique des modifications:",
+      error,
+    );
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
+  }
+});
 
 module.exports = router;
