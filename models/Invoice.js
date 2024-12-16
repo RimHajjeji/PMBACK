@@ -1,5 +1,13 @@
 const mongoose = require("mongoose");
 
+
+// Historique des modifications
+const modificationHistorySchema = new mongoose.Schema({
+  modifiedBy: { type: String, required: true }, // Nom et prénom de l'utilisateur
+  modifiedAt: { type: Date, default: Date.now }, // Date et heure de modification
+  changes: { type: Object, required: true }, // Objet contenant les modifications
+});
+
 // Schema for invoiced vehicles
 const invoicedVehicleSchema = new mongoose.Schema({
   marque: { type: String, required: true },
@@ -40,6 +48,9 @@ const invoiceSchema = new mongoose.Schema(
     
     acompte: { type: Number , default: 0 }, // Nouveau champ pour l'acompte
     montantRemboursement: { type: Number, default: 0 }, // Nouveau champ pour le remboursement
+
+    // Historique des modifications
+    modificationHistory: [modificationHistorySchema],
   },
   { timestamps: true }
 );
