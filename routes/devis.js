@@ -210,26 +210,27 @@ router.put("/:devisId", async (req, res) => {
   }
 });
 
-// GET route pour récupérer l'historique des modifications d'une devis
-router.get("/:devisId/history", async (req, res) => {
+// Route pour récupérer l'historique des modifications d'une Devis
+router.get("/:devisId/modification-history", async (req, res) => {
   try {
     const { devisId } = req.params;
 
-    // Récupérer la devis avec uniquement l'historique
+    // Rechercher la Devis et projeter uniquement l'historique des modifications (sans 'changes')
     const devis = await Devis.findById(devisId, "modificationHistory");
     if (!devis) {
       return res.status(404).json({ error: "Facture non trouvée." });
     }
 
-    res.status(200).json(devis.modificationHistory);
+    // Mapper les résultats pour n'afficher que les champs requis
+    const history = devis.modificationHistory.map((entry) => ({
+      modifiedBy: entry.modifiedBy,
+      timestamp: entry.modifiedAt, // Correspond à `modifiedAt` dans le schéma
+    }));
+
+    res.status(200).json(history);
   } catch (error) {
-    console.error(
-      "Erreur lors de la récupération de l'historique des modifications:",
-      error,
-    );
-    res
-      .status(500)
-      .json({ error: "Erreur interne du serveur.", details: error.message });
+    console.error("Erreur lors de la récupération de l'historique des modifications:", error);
+    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
   }
 });
 
