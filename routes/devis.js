@@ -143,7 +143,7 @@ router.get("/client/:clientId", async (req, res) => {
     );
 
     res.status(200).json({
-      message: `Factures pour le client ${client.nom || clientId}`,
+      message: `Devis pour le client ${client.nom || clientId}`,
       devis,
     });
   } catch (error) {
