@@ -210,27 +210,31 @@ router.put("/:invoiceId", async (req, res) => {
   }
 });
 
-// GET route pour récupérer l'historique des modifications d'une facture
-router.get("/:invoiceId/history", async (req, res) => {
+
+// Route pour récupérer l'historique des modifications d'une facture
+router.get("/:invoiceId/modification-history", async (req, res) => {
   try {
     const { invoiceId } = req.params;
 
-    // Récupérer la facture avec uniquement l'historique
+    // Rechercher la facture et projeter uniquement l'historique des modifications (sans 'changes')
     const invoice = await Invoice.findById(invoiceId, "modificationHistory");
     if (!invoice) {
       return res.status(404).json({ error: "Facture non trouvée." });
     }
 
-    res.status(200).json(invoice.modificationHistory);
+    // Mapper les résultats pour n'afficher que les champs requis
+    const history = invoice.modificationHistory.map((entry) => ({
+      modifiedBy: entry.modifiedBy,
+      timestamp: entry.modifiedAt, // Correspond à `modifiedAt` dans le schéma
+    }));
+
+    res.status(200).json(history);
   } catch (error) {
-    console.error(
-      "Erreur lors de la récupération de l'historique des modifications:",
-      error,
-    );
-    res
-      .status(500)
-      .json({ error: "Erreur interne du serveur.", details: error.message });
+    console.error("Erreur lors de la récupération de l'historique des modifications:", error);
+    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
   }
 });
+
+
 
 module.exports = router;

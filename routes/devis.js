@@ -8,7 +8,7 @@ const generateDevisNumber = async () => {
   const lastDevis = await Devis.findOne().sort({ createdAt: -1 });
   const lastNumber = lastDevis
     ? parseInt(lastDevis.devisNumber.replace("PMC.", ""))
-    : 343;
+    : 336;
   const newNumber = lastNumber + 1;
   return `PMC.${newNumber}`;
 };
