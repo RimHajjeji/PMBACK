@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Invoice = require("../models/Invoice");
 const Client = require("../models/Client");
+const Admin = require("../models/Admin");
 
 // Function to generate a unique invoice number
 const generateInvoiceNumber = async () => {
@@ -157,12 +158,30 @@ router.get("/client/:clientId", async (req, res) => {
   }
 });
 
+
 // PUT route pour mettre à jour une facture et enregistrer l'historique des modifications
 router.put("/:invoiceId", async (req, res) => {
   try {
     const { invoiceId } = req.params;
     const updateData = req.body;
-    const modifiedBy = req.body.modifiedBy || "Utilisateur inconnu"; // Utilisateur qui effectue la modification
+    const { modifiedBy, password } = req.body; // On attend l'ID de l'admin et le mot de passe
+
+    // Vérification si l'admin est sélectionné et le mot de passe est fourni
+    if (!modifiedBy || !password) {
+      return res.status(400).json({ error: "Admin et mot de passe requis." });
+    }
+
+    // Trouver l'admin par son ID (modifiedBy)
+    const admin = await Admin.findById(modifiedBy);
+    if (!admin) {
+      return res.status(404).json({ error: "Admin non trouvé." });
+    }
+
+    // Comparer le mot de passe fourni avec celui stocké dans la base de données
+    const isPasswordValid = password === admin.password; // Ici, vous pouvez appliquer une logique de cryptage si nécessaire
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Mot de passe incorrect." });
+    }
 
     // Récupérer la facture actuelle
     const invoice = await Invoice.findById(invoiceId);
@@ -184,7 +203,7 @@ router.put("/:invoiceId", async (req, res) => {
     // Ajouter l'entrée dans l'historique si des changements existent
     if (Object.keys(changes).length > 0) {
       const modificationRecord = {
-        modifiedBy,
+        modifiedBy: admin.nom + " " + admin.prenom, // Le nom et prénom de l'admin
         modifiedAt: new Date(),
         changes,
       };
@@ -210,7 +229,6 @@ router.put("/:invoiceId", async (req, res) => {
   }
 });
 
-
 // Route pour récupérer l'historique des modifications d'une facture
 router.get("/:invoiceId/modification-history", async (req, res) => {
   try {
@@ -230,11 +248,14 @@ router.get("/:invoiceId/modification-history", async (req, res) => {
 
     res.status(200).json(history);
   } catch (error) {
-    console.error("Erreur lors de la récupération de l'historique des modifications:", error);
-    res.status(500).json({ error: "Erreur interne du serveur.", details: error.message });
+    console.error(
+      "Erreur lors de la récupération de l'historique des modifications:",
+      error,
+    );
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur.", details: error.message });
   }
 });
-
-
 
 module.exports = router;
