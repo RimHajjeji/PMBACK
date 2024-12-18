@@ -29,9 +29,13 @@ router.post("/signup", async (req, res) => {
 
     await admin.save();
 
-    const token = jwt.sign({ id: admin._id }, JWT_SECRET, {
-      expiresIn: "100d", // Expiration fixée à 100 jours
-    });
+    const token = jwt.sign(
+      { id: admin._id, nom: admin.nom, prenom: admin.prenom, email: admin.email },
+      JWT_SECRET,
+      {
+        expiresIn: "24h", // Expiration fixée à 24 heures
+      }
+    );
 
     validTokens.add(token); // Ajout du token valide
     res.json({
@@ -59,9 +63,13 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ msg: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: admin._id }, JWT_SECRET, {
-      expiresIn: "100d",
-    });
+    const token = jwt.sign(
+      { id: admin._id, nom: admin.nom, prenom: admin.prenom, email: admin.email },
+      JWT_SECRET,
+      {
+        expiresIn: "24h", // Expiration fixée à 24 heures
+      }
+    );
 
     validTokens.add(token); // Ajout du token valide
     res.json({
@@ -101,16 +109,11 @@ router.get("/profile", async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const admin = await Admin.findById(decoded.id).select("-password");
-    if (!admin) {
-      return res.status(404).json({ msg: "Admin not found" });
-    }
-
     res.json({
-      id: admin._id,
-      nom: admin.nom,
-      prenom: admin.prenom,
-      email: admin.email,
+      id: decoded.id,
+      nom: decoded.nom,
+      prenom: decoded.prenom,
+      email: decoded.email,
     });
   } catch (err) {
     console.error(err.message);
@@ -159,6 +162,13 @@ router.put("/update", async (req, res) => {
 
     await admin.save();
 
+    // Re-génération du token après modification
+    const newToken = jwt.sign(
+      { id: admin._id, nom: admin.nom, prenom: admin.prenom, email: admin.email },
+      JWT_SECRET,
+      { expiresIn: "24h" } // Expiration fixée à 24 heures
+    );
+
     res.json({
       msg: "Profil mis à jour avec succès",
       admin: {
@@ -167,6 +177,7 @@ router.put("/update", async (req, res) => {
         prenom: admin.prenom,
         email: admin.email,
       },
+      token: newToken, // Retour du nouveau token
     });
   } catch (err) {
     console.error(err.message);
@@ -183,5 +194,37 @@ router.get("/admins", async (req, res) => {
     res.status(500).json({ error: "Erreur interne du serveur." });
   }
 });
+
+// Route pour renouveler le token si l'ancien est proche de l'expiration
+router.post("/refresh-token", async (req, res) => {
+  const token = req.header("x-auth-token");
+
+  if (!token || !isTokenValid(token)) {
+    return res.status(400).json({ msg: "No token or invalid token" });
+  }
+
+  try {
+    // Vérifier si le token est encore valide
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    if (decoded.exp < Date.now() / 1000) {
+      return res.status(401).json({ msg: "Token expired" });
+    }
+
+    // Générer un nouveau token
+    const newToken = jwt.sign(
+      { id: decoded.id, nom: decoded.nom, prenom: decoded.prenom, email: decoded.email },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    // Retourner le nouveau token
+    res.json({ token: newToken });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
+
 
 module.exports = router;
